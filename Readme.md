@@ -1,0 +1,1 @@
+A simple 4-bit CPU which is basically a Turing machine with an instruction set inspired by the BrainFuck language. The instruction set was expanded to make it more useful.
