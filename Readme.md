@@ -26,3 +26,23 @@ Expected program memory layout:
 | ... | ...                                   |
 |0x0F | (int 15) interrupt 15 handler pointer |
 |0x10...0xFF | Executable code                |
+
+IO ports map:
+| Addr | Function       |
+|------|----------------|
+|0x00  | UART MSB nibble|
+|0x01  | UART LSB nibble|
+|0x02  | N/A            |
+|0x03  | N/A            |
+|0x04  | N/A            |
+|0x05  | N/A            |
+|0x06  | N/A            |
+|0x07  | N/A            |
+|0x08  | N/A            |
+|0x09  | N/A            |
+|0x0A  | N/A            |
+|0x0B  | N/A            |
+|0x0C  | N/A            |
+|0x0D  | N/A            |
+|0x0E  | N/A            |
+|0x0F  | N/A            |
