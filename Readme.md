@@ -13,8 +13,8 @@ Instruction set encoding and description:
 |0b0101 + 4-bit value   | DEC       | Decrement the current cell |
 |0b0110 + 4-bit value   | PINC      | Increment the pointer to the cell (move the head forward) |
 |0b0111 + 4-bit value   | PDEC      | Decrement the pointer to the cell (move the head backwards) |
-|0b10 + 6-bit offset    | JZ        | Relative jump if currect cell == 0 |
-|0b11 + 6-bit offset    | JNZ       | relative jump if currect cell != 0 |
+|0b10 + 6-bit offset    | JZ        | Relative jump if current cell == 0 |
+|0b11 + 6-bit offset    | JNZ       | relative jump if current cell != 0 |
 
 Expected program memory layout:
 
