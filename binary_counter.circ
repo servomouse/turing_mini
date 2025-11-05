@@ -134,27 +134,43 @@
       <a name="facing" val="north"/>
       <a name="inputs" val="4"/>
     </comp>
-    <comp lib="1" loc="(480,1000)" name="NAND Gate"/>
+    <comp lib="1" loc="(480,1000)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(480,1100)" name="NAND Gate"/>
-    <comp lib="1" loc="(480,1270)" name="NAND Gate"/>
+    <comp lib="1" loc="(480,1270)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(480,290)" name="NAND Gate"/>
-    <comp lib="1" loc="(480,460)" name="NAND Gate"/>
+    <comp lib="1" loc="(480,460)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(480,560)" name="NAND Gate"/>
-    <comp lib="1" loc="(480,730)" name="NAND Gate"/>
+    <comp lib="1" loc="(480,730)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(480,830)" name="NAND Gate"/>
-    <comp lib="1" loc="(620,1120)" name="NAND Gate"/>
+    <comp lib="1" loc="(620,1120)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(620,1250)" name="NAND Gate">
       <a name="inputs" val="3"/>
     </comp>
-    <comp lib="1" loc="(620,310)" name="NAND Gate"/>
+    <comp lib="1" loc="(620,310)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(620,440)" name="NAND Gate">
       <a name="inputs" val="3"/>
     </comp>
-    <comp lib="1" loc="(620,580)" name="NAND Gate"/>
+    <comp lib="1" loc="(620,580)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(620,710)" name="NAND Gate">
       <a name="inputs" val="3"/>
     </comp>
-    <comp lib="1" loc="(620,850)" name="NAND Gate"/>
+    <comp lib="1" loc="(620,850)" name="NAND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(620,980)" name="NAND Gate">
       <a name="inputs" val="3"/>
     </comp>
@@ -225,7 +241,7 @@
     </comp>
     <comp lib="5" loc="(200,230)" name="DipSwitch">
       <a name="facing" val="east"/>
-      <a name="number" val="2"/>
+      <a name="number" val="3"/>
     </comp>
     <comp lib="5" loc="(810,1100)" name="LED">
       <a name="facing" val="south"/>
@@ -371,6 +387,15 @@
     <wire from="(1890,340)" to="(1890,1190)"/>
     <wire from="(200,240)" to="(690,240)"/>
     <wire from="(200,250)" to="(280,250)"/>
+    <wire from="(200,260)" to="(260,260)"/>
+    <wire from="(260,1230)" to="(380,1230)"/>
+    <wire from="(260,260)" to="(260,420)"/>
+    <wire from="(260,420)" to="(260,680)"/>
+    <wire from="(260,420)" to="(380,420)"/>
+    <wire from="(260,680)" to="(260,960)"/>
+    <wire from="(260,680)" to="(380,680)"/>
+    <wire from="(260,960)" to="(260,1230)"/>
+    <wire from="(260,960)" to="(380,960)"/>
     <wire from="(280,250)" to="(280,330)"/>
     <wire from="(280,330)" to="(520,330)"/>
     <wire from="(360,1060)" to="(520,1060)"/>
@@ -385,30 +410,42 @@
     <wire from="(360,790)" to="(520,790)"/>
     <wire from="(360,980)" to="(360,1060)"/>
     <wire from="(360,980)" to="(420,980)"/>
+    <wire from="(380,1000)" to="(420,1000)"/>
     <wire from="(380,1020)" to="(380,1040)"/>
     <wire from="(380,1020)" to="(420,1020)"/>
     <wire from="(380,1040)" to="(640,1040)"/>
     <wire from="(380,1080)" to="(380,1190)"/>
     <wire from="(380,1080)" to="(420,1080)"/>
     <wire from="(380,1190)" to="(500,1190)"/>
+    <wire from="(380,1230)" to="(380,1270)"/>
+    <wire from="(380,1230)" to="(480,1230)"/>
+    <wire from="(380,1270)" to="(420,1270)"/>
     <wire from="(380,1290)" to="(380,1310)"/>
     <wire from="(380,1290)" to="(420,1290)"/>
     <wire from="(380,1310)" to="(640,1310)"/>
     <wire from="(380,270)" to="(380,380)"/>
     <wire from="(380,270)" to="(420,270)"/>
     <wire from="(380,380)" to="(500,380)"/>
+    <wire from="(380,420)" to="(380,460)"/>
+    <wire from="(380,420)" to="(480,420)"/>
+    <wire from="(380,460)" to="(420,460)"/>
     <wire from="(380,480)" to="(380,500)"/>
     <wire from="(380,480)" to="(420,480)"/>
     <wire from="(380,500)" to="(640,500)"/>
     <wire from="(380,540)" to="(380,650)"/>
     <wire from="(380,540)" to="(420,540)"/>
     <wire from="(380,650)" to="(500,650)"/>
+    <wire from="(380,680)" to="(380,730)"/>
+    <wire from="(380,680)" to="(480,680)"/>
+    <wire from="(380,730)" to="(420,730)"/>
     <wire from="(380,750)" to="(380,770)"/>
     <wire from="(380,750)" to="(420,750)"/>
     <wire from="(380,770)" to="(640,770)"/>
     <wire from="(380,810)" to="(380,920)"/>
     <wire from="(380,810)" to="(420,810)"/>
     <wire from="(380,920)" to="(500,920)"/>
+    <wire from="(380,960)" to="(380,1000)"/>
+    <wire from="(380,960)" to="(480,960)"/>
     <wire from="(400,1120)" to="(400,1170)"/>
     <wire from="(400,1120)" to="(420,1120)"/>
     <wire from="(400,1170)" to="(540,1170)"/>
@@ -423,12 +460,20 @@
     <wire from="(400,900)" to="(540,900)"/>
     <wire from="(480,1000)" to="(500,1000)"/>
     <wire from="(480,1100)" to="(560,1100)"/>
+    <wire from="(480,1120)" to="(480,1230)"/>
+    <wire from="(480,1120)" to="(560,1120)"/>
     <wire from="(480,1270)" to="(500,1270)"/>
     <wire from="(480,290)" to="(560,290)"/>
+    <wire from="(480,310)" to="(480,420)"/>
+    <wire from="(480,310)" to="(560,310)"/>
     <wire from="(480,460)" to="(500,460)"/>
     <wire from="(480,560)" to="(560,560)"/>
+    <wire from="(480,580)" to="(480,680)"/>
+    <wire from="(480,580)" to="(560,580)"/>
     <wire from="(480,730)" to="(500,730)"/>
     <wire from="(480,830)" to="(560,830)"/>
+    <wire from="(480,850)" to="(480,960)"/>
+    <wire from="(480,850)" to="(560,850)"/>
     <wire from="(500,1000)" to="(560,1000)"/>
     <wire from="(500,1190)" to="(500,1270)"/>
     <wire from="(500,1270)" to="(560,1270)"/>
