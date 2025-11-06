@@ -46,3 +46,23 @@ IO ports map:
 |0x0D  | N/A            |
 |0x0E  | N/A            |
 |0x0F  | N/A            |
+
+
+JZ   000 + 2-bit register + 11-bit address
+JNZ  001 + 2-bit register + 11-bit address
+LD   010 + 2-bit register + 11-bit address
+STOR 011 + 2-bit register + 11-bit address
+
+AND  1001 + 2-bit register + 2-bit register
+OR   1010 + 2-bit register + 2-bit register
+XOR  1011 + 2-bit register + 2-bit register
+ADD  1100 + 2-bit register + 2-bit register
+SUB  1101 + 2-bit register + 2-bit register
+SETA 1110 + 4-bit immed
+     
+JMP  1111 0 + 11-bit address
+IN   1111 10 + 2-bit register + 8-bit IO port
+OUT  1111 11 + 2-bit register + 8-bit IO port
+
+RET  1000 0000
+MOV  1000 0001 + 4-bit register + 4-bit register
