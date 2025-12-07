@@ -23,59 +23,8 @@ class CPUGUI:
         self.memory_frame = tk.Frame(self.top_frame)
         self.memory_frame.pack(side=tk.LEFT, fill=tk.X, padx=10, pady=5)
 
-        # ROM control frame
-        self.rom_ctrl_frame = tk.Frame(self.memory_frame)
-        self.rom_ctrl_frame.pack(side=tk.TOP, fill=tk.X)
-
-        # ROM
-        rom_label = tk.Label(self.rom_ctrl_frame, text="ROM")
-        rom_label.pack(side=tk.LEFT, fill=tk.X)
-        rom_write_btn = tk.Button(self.rom_ctrl_frame, text="Write", command=lambda: self.write_memory(0))
-        rom_write_btn.pack(side=tk.RIGHT, fill=tk.X)
-        rom_read_btn = tk.Button(self.rom_ctrl_frame, text="Read", command=lambda: self.read_memory(0))
-        rom_read_btn.pack(side=tk.RIGHT, fill=tk.X)
-
-        # ROM viewer frame
-        self.rom_view_frame = tk.Frame(self.memory_frame)
-        self.rom_view_frame.pack(side=tk.TOP, fill=tk.X)
-
-        self.rom = {
-            "addr": None,
-            "text": None
-        }
-
-        self.rom["addr"] = tk.Text(self.rom_view_frame, height=10, width=9, wrap=tk.NONE)
-        self.rom["addr"].pack(side=tk.LEFT, fill=tk.X)
-
-        self.rom["text"] = tk.Text(self.rom_view_frame, height=10, width=48, wrap=tk.NONE)
-        self.rom["text"].pack(side=tk.LEFT, fill=tk.X)
-
-        # RAM control frame
-        self.ram_ctrl_frame = tk.Frame(self.memory_frame)
-        self.ram_ctrl_frame.pack(side=tk.TOP, fill=tk.X)
-
-        # RAM
-        ram_label = tk.Label(self.ram_ctrl_frame, text="RAM")
-        ram_label.pack(side=tk.LEFT, fill=tk.X)
-        ram_write_btn = tk.Button(self.ram_ctrl_frame, text="Write", command=lambda: self.write_memory(1))
-        ram_write_btn.pack(side=tk.RIGHT, fill=tk.X)
-        ram_read_btn = tk.Button(self.ram_ctrl_frame, text="Read", command=lambda: self.read_memory(1))
-        ram_read_btn.pack(side=tk.RIGHT, fill=tk.X)
-
-        # RAM viewer frame
-        self.ram_view_frame = tk.Frame(self.memory_frame)
-        self.ram_view_frame.pack(side=tk.TOP, fill=tk.X)
-
-        self.ram = {
-            "addr": None,
-            "text": None
-        }
-
-        self.ram["addr"] = tk.Text(self.ram_view_frame, height=10, width=9, wrap=tk.NONE)
-        self.ram["addr"].pack(side=tk.LEFT, fill=tk.X)
-
-        self.ram["text"] = tk.Text(self.ram_view_frame, height=10, width=48, wrap=tk.NONE)
-        self.ram["text"].pack(side=tk.LEFT, fill=tk.X)
+        self.rom = self.create_memory_viewer(self.memory_frame, "ROM")
+        self.ram = self.create_memory_viewer(self.memory_frame, "RAM")
 
         # Register Fields
         self.registers_frame = tk.Frame(self.top_frame)
@@ -105,6 +54,35 @@ class CPUGUI:
         # Initialize some data for demo purposes
         self.populate_memory(self.rom, [i for i in range(37)])
         self.populate_memory(self.ram, [i for i in range(32)])
+    
+    def create_memory_viewer(self, memory_frame, label):
+        mem_ctrl_frame = tk.Frame(memory_frame)
+        mem_ctrl_frame.pack(side=tk.TOP, fill=tk.X)
+
+        mem_label = tk.Label(mem_ctrl_frame, text=label)
+        mem_label.pack(side=tk.LEFT, fill=tk.X)
+
+        mem_write_btn = tk.Button(mem_ctrl_frame, text="Write")
+        mem_write_btn.pack(side=tk.RIGHT, fill=tk.X)
+
+        mem_read_btn = tk.Button(mem_ctrl_frame, text="Read")
+        mem_read_btn.pack(side=tk.RIGHT, fill=tk.X)
+
+        mem_view_frame = tk.Frame(memory_frame)
+        mem_view_frame.pack(side=tk.TOP, fill=tk.X)
+
+        addr = tk.Text(mem_view_frame, height=10, width=9, wrap=tk.NONE)
+        addr.pack(side=tk.LEFT, fill=tk.X)
+
+        text = tk.Text(mem_view_frame, height=10, width=48, wrap=tk.NONE)
+        text.pack(side=tk.LEFT, fill=tk.X)
+
+        return {
+            "addr": addr,
+            "text": text,
+            "read_btn": mem_read_btn,
+            "write_btn": mem_write_btn
+        }
 
     def populate_memory(self, mem_space, image):
         # Populate ROM and RAM with hexadecimal data for demonstration
