@@ -1,5 +1,14 @@
 import tkinter as tk
 from tkinter import scrolledtext
+import math
+
+
+def myhex(value):
+    temp = hex(value)
+    temp.replace("0x", "")
+    if len(temp) == 1:
+        temp = "0" + temp
+    return temp
 
 class CPUGUI:
     def __init__(self, root):
@@ -28,7 +37,6 @@ class CPUGUI:
 
         self.rom_text = tk.Text(self.memory_frame, height=10, width=60, wrap=tk.NONE)
         self.rom_text.pack(side=tk.TOP, fill=tk.X)
-        # self.rom_text.grid(row=1, column=0, columnspan=3, sticky="ew")
 
         # RAM control frame
         self.ram_ctrl_frame = tk.Frame(self.memory_frame)
@@ -44,7 +52,6 @@ class CPUGUI:
 
         self.ram_text = tk.Text(self.memory_frame, height=10, width=60, wrap=tk.NONE)
         self.ram_text.pack(side=tk.TOP, fill=tk.X)
-        # self.ram_text.grid(row=3, column=0, columnspan=3, sticky="ew")
 
         # Register Fields
         self.registers_frame = tk.Frame(self.top_frame)
@@ -72,12 +79,22 @@ class CPUGUI:
         self.console2.insert(tk.END, "Console 2\n")
 
         # Initialize some data for demo purposes
-        self.populate_memory()
+        # self.populate_memory()
+        self.populate_memory(self.rom_text, [i for i in range(32)])
+        self.populate_memory(self.ram_text, [i for i in range(32)])
 
-    def populate_memory(self):
+    def populate_memory(self, mem_space, image):
         # Populate ROM and RAM with hexadecimal data for demonstration
-        self.rom_text.insert(tk.END, "Address 00: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n")
-        self.ram_text.insert(tk.END, "Address 00: 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F\n")
+        idx = 0
+        for i in range(0, math.ceil(len(image) / 16)):
+            temp = f"0x{i:04X}:"
+            for j in range(16):
+                if idx > len(image):
+                    temp += " FF"
+                else:
+                    temp += f" {image[idx]:02X}"
+                idx += 1
+            mem_space.insert(tk.END, temp + "\n")
 
     def read_memory(self, idx):
         print(f"Read memory {idx}")
