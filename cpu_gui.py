@@ -35,8 +35,20 @@ class CPUGUI:
         rom_read_btn = tk.Button(self.rom_ctrl_frame, text="Read", command=lambda: self.read_memory(0))
         rom_read_btn.pack(side=tk.RIGHT, fill=tk.X)
 
-        self.rom_text = tk.Text(self.memory_frame, height=10, width=60, wrap=tk.NONE)
-        self.rom_text.pack(side=tk.TOP, fill=tk.X)
+        # ROM viewer frame
+        self.rom_view_frame = tk.Frame(self.memory_frame)
+        self.rom_view_frame.pack(side=tk.TOP, fill=tk.X)
+
+        self.rom = {
+            "addr": None,
+            "text": None
+        }
+
+        self.rom["addr"] = tk.Text(self.rom_view_frame, height=10, width=9, wrap=tk.NONE)
+        self.rom["addr"].pack(side=tk.LEFT, fill=tk.X)
+
+        self.rom["text"] = tk.Text(self.rom_view_frame, height=10, width=48, wrap=tk.NONE)
+        self.rom["text"].pack(side=tk.LEFT, fill=tk.X)
 
         # RAM control frame
         self.ram_ctrl_frame = tk.Frame(self.memory_frame)
@@ -50,8 +62,20 @@ class CPUGUI:
         ram_read_btn = tk.Button(self.ram_ctrl_frame, text="Read", command=lambda: self.read_memory(1))
         ram_read_btn.pack(side=tk.RIGHT, fill=tk.X)
 
-        self.ram_text = tk.Text(self.memory_frame, height=10, width=60, wrap=tk.NONE)
-        self.ram_text.pack(side=tk.TOP, fill=tk.X)
+        # RAM viewer frame
+        self.ram_view_frame = tk.Frame(self.memory_frame)
+        self.ram_view_frame.pack(side=tk.TOP, fill=tk.X)
+
+        self.ram = {
+            "addr": None,
+            "text": None
+        }
+
+        self.ram["addr"] = tk.Text(self.ram_view_frame, height=10, width=9, wrap=tk.NONE)
+        self.ram["addr"].pack(side=tk.LEFT, fill=tk.X)
+
+        self.ram["text"] = tk.Text(self.ram_view_frame, height=10, width=48, wrap=tk.NONE)
+        self.ram["text"].pack(side=tk.LEFT, fill=tk.X)
 
         # Register Fields
         self.registers_frame = tk.Frame(self.top_frame)
@@ -79,22 +103,22 @@ class CPUGUI:
         self.console2.insert(tk.END, "Console 2\n")
 
         # Initialize some data for demo purposes
-        # self.populate_memory()
-        self.populate_memory(self.rom_text, [i for i in range(32)])
-        self.populate_memory(self.ram_text, [i for i in range(32)])
+        self.populate_memory(self.rom, [i for i in range(37)])
+        self.populate_memory(self.ram, [i for i in range(32)])
 
     def populate_memory(self, mem_space, image):
         # Populate ROM and RAM with hexadecimal data for demonstration
         idx = 0
         for i in range(0, math.ceil(len(image) / 16)):
-            temp = f"0x{i:04X}:"
+            mem_space["addr"].insert(tk.END, f"0x{i:04X}:\n")
+            temp = []
             for j in range(16):
-                if idx > len(image):
-                    temp += " FF"
+                if idx < len(image):
+                    temp.append(f"{image[idx]:02X}")
                 else:
-                    temp += f" {image[idx]:02X}"
+                    temp.append("FF")
                 idx += 1
-            mem_space.insert(tk.END, temp + "\n")
+            mem_space["text"].insert(tk.END, " ".join(temp) + "\n")
 
     def read_memory(self, idx):
         print(f"Read memory {idx}")
