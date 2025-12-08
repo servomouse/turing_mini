@@ -14,6 +14,7 @@ class CPUGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("CPU Emulator")
+        self.cpu_state = "Stop"
 
         # Top frame
         self.top_frame = tk.Frame(root)
@@ -38,6 +39,13 @@ class CPUGUI:
             entry = tk.Entry(self.registers_frame, width=10)
             entry.grid(row=i, column=1)
             self.registers[label] = entry
+
+        self.run_btn = tk.Button(self.registers_frame, width=10, text="Run", background='green', command=lambda: self.run_btn_callback())
+        self.run_btn.grid(row=9, column=1)
+        self.step_btn = tk.Button(self.registers_frame, width=10, text="Step", activebackground='yellow', command=lambda: self.step_btn_callback())
+        self.step_btn.grid(row=10, column=1)
+        self.rst_btn = tk.Button(self.registers_frame, width=10, text="Reset", activebackground='red', command=lambda: self.rst_btn_callback())
+        self.rst_btn.grid(row=11, column=1)
 
         # Consoles
         self.console_frame = tk.Frame(root)
@@ -103,6 +111,21 @@ class CPUGUI:
 
     def write_memory(self, idx):
         print(f"Write memory {idx}")
+
+    def run_btn_callback(self):
+        if self.cpu_state == "Stop":
+            self.cpu_state = "Run"
+            self.run_btn.config(text="Stop", background='red')
+        else:
+            self.cpu_state = "Stop"
+            self.run_btn.config(text="Run", background='green')
+        print(f"CPU state: {self.cpu_state}")
+
+    def rst_btn_callback(self):
+        print(f"CPU reset")
+
+    def step_btn_callback(self):
+        print(f"CPU step")
 
 if __name__ == "__main__":
     root = tk.Tk()
