@@ -1,133 +1,199 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import ttk, scrolledtext
 import math
 
 
-def myhex(value):
-    temp = hex(value)
-    temp.replace("0x", "")
-    if len(temp) == 1:
-        temp = "0" + temp
-    return temp
+def myhex(value: int) -> str:
+    """Return a two‑digit hex string (e.g. 0x0A → '0A')."""
+    return f"{value:02X}"
+
 
 class CPUGUI:
-    def __init__(self, root):
+    FONT = ("Consolas", 10)
+
+    def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("CPU Emulator")
         self.cpu_state = "Stop"
 
-        # Top frame
-        self.top_frame = tk.Frame(root)
-        self.top_frame.pack(side=tk.TOP, fill=tk.X)
+        # -------------------------------------------------
+        # Main layout: left = memory, right = registers
+        # -------------------------------------------------
+        main_pane = ttk.Panedwindow(root, orient=tk.HORIZONTAL)
+        main_pane.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        # ROM and RAM Frames
-        self.memory_frame = tk.Frame(self.top_frame)
-        self.memory_frame.pack(side=tk.LEFT, fill=tk.X, padx=10, pady=5)
+        # ----- Memory viewer (ROM / RAM) -----
+        mem_frame = ttk.Frame(main_pane)
+        main_pane.add(mem_frame, weight=3)
 
-        self.rom = self.create_memory_viewer(self.memory_frame, "ROM")
-        self.ram = self.create_memory_viewer(self.memory_frame, "RAM")
+        self.rom = self._create_memory_viewer(mem_frame, "ROM")
+        self.ram = self._create_memory_viewer(mem_frame, "RAM")
 
-        # Register Fields
-        self.registers_frame = tk.Frame(self.top_frame)
-        self.registers_frame.pack(side=tk.RIGHT, padx=10, pady=5, anchor='n')
+        # ----- Register panel -----
+        reg_frame = ttk.Frame(main_pane, padding=5)
+        main_pane.add(reg_frame, weight=1)
+
+        self._create_register_panel(reg_frame)
+
+        # ----- Console area (tabbed) -----
+        console_nb = ttk.Notebook(root)
+        console_nb.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.console1 = scrolledtext.ScrolledText(
+            console_nb, height=6, wrap=tk.WORD, font=self.FONT
+        )
+        self.console2 = scrolledtext.ScrolledText(
+            console_nb, height=6, wrap=tk.WORD, font=self.FONT
+        )
+        console_nb.add(self.console1, text="Console 1")
+        console_nb.add(self.console2, text="Console 2")
+        self.console1.insert(tk.END, "Console 1\n")
+        self.console2.insert(tk.END, "Console 2\n")
+
+        # Demo data
+        self.populate_memory(self.rom, [i%256 for i in range(512)])
+        self.populate_memory(self.ram, list(range(32)))
+
+    # ----------------------------------------------------------------------
+    # UI construction helpers
+    # ----------------------------------------------------------------------
+    def _create_memory_viewer(self, parent, label):
+        """Return a dict with address/text widgets and read/write buttons."""
+        frame = ttk.LabelFrame(parent, text=label, padding=5)
+        frame.pack(fill=tk.BOTH, expand=True, side=tk.TOP, pady=4)
+
+        # ---- address and data text widgets ----
+        addr = tk.Text(frame, width=9, height=10,
+                    font=self.FONT, bg="#f0f0f0", wrap=tk.NONE)
+        data = tk.Text(frame, width=48, height=10,
+                    font=self.FONT, bg="#f8f8f8", wrap=tk.NONE)
+
+        # ---- vertical scrollbar (shared) ----
+        vbar = ttk.Scrollbar(frame, orient=tk.VERTICAL)
+        vbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # connect both text widgets to the same scrollbar
+        addr.config(yscrollcommand=vbar.set)
+        data.config(yscrollcommand=vbar.set)
+        vbar.config(command=lambda *args: (addr.yview(*args), data.yview(*args)))
+
+        # pack the text widgets (they must be packed **before** the scrollbar
+        # gets its size, otherwise the scrollbar will cover part of them)
+        addr.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 2))
+        data.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # ---- mouse‑wheel synchronization -----------------------------------
+        def _on_mousewheel(event, source, partner):
+            """Scroll both widgets together."""
+            # Windows / macOS uses event.delta (120‑step); Linux uses button‑4/5.
+            if event.num in (4, 5):          # Linux scroll events
+                delta = 1 if event.num == 5 else -1
+            else:                            # Windows / macOS
+                delta = -1 * (event.delta // 120)
+
+            # Apply the same delta to both widgets
+            source.yview_scroll(delta, "units")
+            partner.yview_scroll(delta, "units")
+            return "break"   # prevent default single‑widget scrolling
+
+        # Bind for all platforms
+        addr.bind("<MouseWheel>", lambda e: _on_mousewheel(e, addr, data))
+        data.bind("<MouseWheel>", lambda e: _on_mousewheel(e, data, addr))
+
+        # Linux uses Button-4 (up) and Button-5 (down)
+        addr.bind("<Button-4>", lambda e: _on_mousewheel(e, addr, data))
+        addr.bind("<Button-5>", lambda e: _on_mousewheel(e, addr, data))
+        data.bind("<Button-4>", lambda e: _on_mousewheel(e, data, addr))
+        data.bind("<Button-5>", lambda e: _on_mousewheel(e, data, addr))
+
+        # ---- button row (unchanged) ----
+        btn_row = ttk.Frame(frame)
+        btn_row.pack(fill=tk.X, pady=2)
+
+        read_btn = ttk.Button(btn_row, text="Read",
+                            command=lambda l=label: self.read_memory(l))
+        read_btn.pack(side=tk.RIGHT, padx=2)
+
+        write_btn = ttk.Button(btn_row, text="Write",
+                            command=lambda l=label: self.write_memory(l))
+        write_btn.pack(side=tk.RIGHT, padx=2)
+
+        return {"addr": addr, "text": data,
+                "read_btn": read_btn, "write_btn": write_btn}
+
+    def _create_register_panel(self, parent):
+        """Create the 9 register entries and control buttons."""
+        reg_box = ttk.LabelFrame(parent, text="Registers", padding=5)
+        reg_box.pack(fill=tk.BOTH, expand=True)
 
         self.registers = {}
         for i in range(9):
-            label = f"R{i}:"
-            lbl = tk.Label(self.registers_frame, text=label)
-            lbl.grid(row=i, column=0)
-            entry = tk.Entry(self.registers_frame, width=10)
-            entry.grid(row=i, column=1)
-            self.registers[label] = entry
+            lbl = ttk.Label(reg_box, text=f"R{i}:", width=3, anchor="e")
+            lbl.grid(row=i, column=0, sticky="e", padx=2, pady=2)
+            entry = ttk.Entry(reg_box, width=12, font=self.FONT)
+            entry.grid(row=i, column=1, sticky="w", padx=2, pady=2)
+            self.registers[f"R{i}"] = entry
 
-        self.run_btn = tk.Button(self.registers_frame, width=10, text="Run", background='green', command=lambda: self.run_btn_callback())
-        self.run_btn.grid(row=9, column=1)
-        self.step_btn = tk.Button(self.registers_frame, width=10, text="Step", activebackground='yellow', command=lambda: self.step_btn_callback())
-        self.step_btn.grid(row=10, column=1)
-        self.rst_btn = tk.Button(self.registers_frame, width=10, text="Reset", activebackground='red', command=lambda: self.rst_btn_callback())
-        self.rst_btn.grid(row=11, column=1)
+        # control buttons
+        btn_frame = ttk.Frame(reg_box)
+        btn_frame.grid(row=9, column=0, columnspan=2, pady=8)
 
-        # Consoles
-        self.console_frame = tk.Frame(root)
-        self.console_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=5)
+        self.run_btn = ttk.Button(
+            btn_frame, text="Run", width=10, command=self.run_btn_callback
+        )
+        self.run_btn.pack(side=tk.LEFT, padx=4)
 
-        self.console1 = scrolledtext.ScrolledText(self.console_frame, height=5, wrap=tk.WORD)
-        self.console1.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.console1.insert(tk.END, "Console 1\n")
+        self.step_btn = ttk.Button(
+            btn_frame, text="Step", width=10, command=self.step_btn_callback
+        )
+        self.step_btn.pack(side=tk.LEFT, padx=4)
 
-        self.console2 = scrolledtext.ScrolledText(self.console_frame, height=5, wrap=tk.WORD)
-        self.console2.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.console2.insert(tk.END, "Console 2\n")
+        self.rst_btn = ttk.Button(
+            btn_frame, text="Reset", width=10, command=self.rst_btn_callback
+        )
+        self.rst_btn.pack(side=tk.LEFT, padx=4)
 
-        # Initialize some data for demo purposes
-        self.populate_memory(self.rom, [i for i in range(37)])
-        self.populate_memory(self.ram, [i for i in range(32)])
-    
-    def create_memory_viewer(self, memory_frame, label):
-        mem_ctrl_frame = tk.Frame(memory_frame)
-        mem_ctrl_frame.pack(side=tk.TOP, fill=tk.X)
-
-        mem_label = tk.Label(mem_ctrl_frame, text=label)
-        mem_label.pack(side=tk.LEFT, fill=tk.X)
-
-        mem_write_btn = tk.Button(mem_ctrl_frame, text="Write")
-        mem_write_btn.pack(side=tk.RIGHT, fill=tk.X)
-
-        mem_read_btn = tk.Button(mem_ctrl_frame, text="Read")
-        mem_read_btn.pack(side=tk.RIGHT, fill=tk.X)
-
-        mem_view_frame = tk.Frame(memory_frame)
-        mem_view_frame.pack(side=tk.TOP, fill=tk.X)
-
-        addr = tk.Text(mem_view_frame, height=10, width=9, wrap=tk.NONE)
-        addr.pack(side=tk.LEFT, fill=tk.X)
-
-        text = tk.Text(mem_view_frame, height=10, width=48, wrap=tk.NONE)
-        text.pack(side=tk.LEFT, fill=tk.X)
-
-        return {
-            "addr": addr,
-            "text": text,
-            "read_btn": mem_read_btn,
-            "write_btn": mem_write_btn
-        }
-
+    # ----------------------------------------------------------------------
+    # Logic helpers
+    # ----------------------------------------------------------------------
     def populate_memory(self, mem_space, image):
-        # Populate ROM and RAM with hexadecimal data for demonstration
+        """Fill address and data text widgets with hex values."""
         idx = 0
-        for i in range(0, math.ceil(len(image) / 16)):
+        rows = math.ceil(len(image) / 16)
+        for i in range(rows):
             mem_space["addr"].insert(tk.END, f"0x{i:04X}:\n")
-            temp = []
-            for j in range(16):
+            line = []
+            for _ in range(16):
                 if idx < len(image):
-                    temp.append(f"{image[idx]:02X}")
+                    line.append(myhex(image[idx]))
                 else:
-                    temp.append("FF")
+                    line.append("FF")
                 idx += 1
-            mem_space["text"].insert(tk.END, " ".join(temp) + "\n")
+            mem_space["text"].insert(tk.END, " ".join(line) + "\n")
 
-    def read_memory(self, idx):
-        print(f"Read memory {idx}")
+    def read_memory(self, label):
+        print(f"Read memory {label}")
 
-    def write_memory(self, idx):
-        print(f"Write memory {idx}")
+    def write_memory(self, label):
+        print(f"Write memory {label}")
 
     def run_btn_callback(self):
         if self.cpu_state == "Stop":
             self.cpu_state = "Run"
-            self.run_btn.config(text="Stop", background='red')
+            self.run_btn.config(text="Stop")
         else:
             self.cpu_state = "Stop"
-            self.run_btn.config(text="Run", background='green')
+            self.run_btn.config(text="Run")
         print(f"CPU state: {self.cpu_state}")
 
     def rst_btn_callback(self):
-        print(f"CPU reset")
+        print("CPU reset")
 
     def step_btn_callback(self):
-        print(f"CPU step")
+        print("CPU step")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = CPUGUI(root)
+    CPUGUI(root)
     root.mainloop()
