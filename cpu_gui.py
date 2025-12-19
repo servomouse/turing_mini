@@ -89,8 +89,7 @@ class MemoryViewer:
 
     # ----- navigation ------------------------------------------------
     def _hex_nav_handler(self, event):
-        cur_line, cur_col = map(int,
-                                self.data.index(tk.INSERT).split("."))
+        cur_line, cur_col = map(int, self.data.index(tk.INSERT).split("."))
 
         if event.keysym == "Left":
             new_col = cur_col - 1
@@ -155,7 +154,7 @@ class MemoryViewer:
 
         cur_index = self.data.index(tk.INSERT)
         line, col = map(int, cur_index.split("."))
-        replace_col = max(col - 1, 0)
+        replace_col = col
         replace_idx = f"{line}.{replace_col}"
         next_idx = f"{line}.{replace_col + 1}"
 
@@ -214,8 +213,11 @@ class CPUGUI:
         self.ram = MemoryViewer(mem_frame, "RAM", mem_cbs)
 
         # ---------- registers ----------
-        regs_frame = ttk.Frame(top_frame)
-        regs_frame.pack(side=tk.RIGHT, padx=10, pady=5, anchor="n")
+        # regs_frame = ttk.Frame(top_frame)
+        # regs_frame.pack(side=tk.RIGHT, padx=10, pady=5, anchor="n")
+        
+        regs_frame = ttk.LabelFrame(top_frame, text="Registers", padding=5)
+        regs_frame.pack(fill=tk.BOTH, expand=True, side=tk.TOP, pady=9)
 
         self.registers = {}
         for i in range(9):
@@ -229,17 +231,23 @@ class CPUGUI:
         btn_box = ttk.Frame(regs_frame)
         btn_box.grid(row=9, column=0, columnspan=2, pady=8)
 
-        self.run_btn = ttk.Button(btn_box, text="Run", width=10,
-                                  command=self.run_btn_callback)
+        self.run_btn = ttk.Button(btn_box, text="Run", width=10, command=self.run_btn_callback)
         self.run_btn.pack(side=tk.LEFT, padx=4)
 
-        self.step_btn = ttk.Button(btn_box, text="Step", width=10,
-                                   command=self.step_btn_callback)
+        self.step_btn = ttk.Button(btn_box, text="Step", width=10, command=self.step_btn_callback)
         self.step_btn.pack(side=tk.LEFT, padx=4)
 
-        self.rst_btn = ttk.Button(btn_box, text="Reset", width=10,
-                                  command=self.rst_btn_callback)
+        self.rst_btn = ttk.Button(btn_box, text="Reset", width=10, command=self.rst_btn_callback)
         self.rst_btn.pack(side=tk.LEFT, padx=4)
+
+        btn_box = ttk.Frame(regs_frame)
+        btn_box.grid(row=9, column=0, columnspan=2, pady=8)
+
+        cpu_status_text_label = ttk.Label(regs_frame, text="CPU state:", font =("Courier", 14))
+        cpu_status_text_label.grid(row=10, column=0, columnspan=2, pady=4)
+
+        self.cpu_status_label = ttk.Label(regs_frame, text="HALT", font =("Courier", 14), background="yellow")
+        self.cpu_status_label.grid(row=11, column=0, columnspan=2, pady=4)
 
         # ---------- consoles (tabbed) ----------
         console_nb = ttk.Notebook(root)
@@ -282,9 +290,13 @@ class CPUGUI:
         if self.cpu_state == "Stop":
             self.cpu_state = "Run"
             self.run_btn.config(text="Stop")
+            self.step_btn.config(state="disabled")
+            self.cpu_status_label.config(text = "RUNNING", background="green")
         else:
             self.cpu_state = "Stop"
             self.run_btn.config(text="Run")
+            self.step_btn.config(state="enabled")
+            self.cpu_status_label.config(text = "HALT", background="yellow")
         print(f"CPU state: {self.cpu_state}")
 
     def step_btn_callback(self):
