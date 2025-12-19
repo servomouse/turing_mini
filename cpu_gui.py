@@ -263,6 +263,8 @@ class CPUGUI:
         console_nb.add(self.console2, text="Console 2")
         self.console1.insert(tk.END, "Console 1\n")
         self.console2.insert(tk.END, "Console 2\n")
+        self.console1.bind("<Return>", self.on_console1_enter)
+        self.console2.bind("<Return>", self.on_console2_enter)
 
         # ---------- demo data ----------
         self.rom.populate_memory([i for i in range(37)])
@@ -304,6 +306,46 @@ class CPUGUI:
 
     def rst_btn_callback(self):
         print("CPU reset")
+    
+    # --------------------------------------------------------------------
+    # Console methods
+    # --------------------------------------------------------------------
+    def print_to_console(self, console, message):
+        """Print a message to the specified console."""
+        console.insert(tk.END, message + "\n")
+        console.see(tk.END)  # Scroll to the end to show the latest message
+
+    def on_console1_enter(self, event):
+        # Get all text from the console
+        text = self.console1.get("1.0", tk.END).strip()
+        # Split the text into lines and get the last line
+        lines = text.splitlines()
+        if lines:  # Check if there are any lines
+            last_line = lines[-1]  # Get the last line
+            print(f"Console 1: {last_line}")
+        # self.console1.delete("1.0", tk.END)  # Clear console
+
+    def on_console2_enter(self, event):
+        # Get all text from the console
+        text = self.console2.get("1.0", tk.END).strip()
+        # Split the text into lines and get the last line
+        lines = text.splitlines()
+        if lines:  # Check if there are any lines
+            last_line = lines[-1]  # Get the last line
+            print(f"Console 1: {last_line}")
+        # self.console2.delete("1.0", tk.END)  # Clear console
+
+# def on_console1_enter(self, event):
+#     text = self.console1.get("1.0", tk.END).strip()
+#     if text:  # Only print if there is something to print
+#         print(f"Console 1: {text}")
+#         # self.console1.delete("1.0", tk.END)  # Clear console
+
+# def on_console2_enter(self, event):
+#     text = self.console2.get("1.0", tk.END).strip()
+#     if text:  # Only print if there is something to print
+#         print(f"Console 2: {text}")
+#         # self.console2.delete("1.0", tk.END)  # Clear console
 
 
 if __name__ == "__main__":
