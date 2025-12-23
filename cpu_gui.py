@@ -185,6 +185,79 @@ class MemoryViewer:
             self.data.insert(tk.END, " ".join(line) + "\n")
 
 
+
+# ----------------------------------------------------------------------
+#  TerminalApp – a self‑contained terminal with its own handlers
+# ----------------------------------------------------------------------
+class TerminalApp:
+    def __init__(self, parent):
+        self.parent = parent
+
+        # Text widget to simulate terminal output/input
+        self.console = scrolledtext.ScrolledText(self.parent, wrap='word', height=20, width=60)
+        self.console.pack(side=tk.TOP)
+
+        # Configure the console to be read-only before the prompt
+        self.console.bind("<Key>", self.prevent_edit_before_prompt)
+
+        # Disable mouse clicks to move the cursor
+        self.console.bind("<Button-1>", self.prevent_mouse_movement)
+        
+        # Prompt
+        self.prompt = ">>> "
+        self.console.insert(tk.END, self.prompt)
+        
+        # Bind Enter and Tab keys
+        self.console.bind("<Return>", self.on_enter)
+        self.console.bind("<Tab>", self.on_tab)
+
+        # Store the current position in the text widget
+        self.current_position = tk.END
+    
+    def get_horizontal_position(self, coords):
+        pos = int(coords.split('.')[1])
+        return pos
+
+    def prevent_edit_before_prompt(self, event):
+        # Allow editing only after the prompt
+        # print(f"{event.keycode = }")
+        pos = self.get_horizontal_position(self.console.index(tk.INSERT))
+
+        if event.keycode in [38, 40]:  # Arrow up/down
+            return "break"  # Do nothing
+        if event.keycode in [8, 37]:  # Backspace or arrow left
+            if pos <= len(self.prompt):
+                return "break"
+        if pos < len(self.prompt):  # Prevent other keys before the prompt
+            return "break"  # Prevent editing
+    
+    def prevent_mouse_movement(self, event):
+        # Prevent moving the cursor with the mouse
+        if self.console.focus_get() != self.console:
+            self.console.focus_set()
+        return "break"
+        
+    def on_enter(self, event):
+        # Capture the input after the prompt
+        user_input = self.console.get("end-1c linestart", "end-1c")
+        if user_input:
+            self.console.insert(tk.END, f"\nYou entered: {user_input}")
+        self.write_to_console("")
+        return "break"  # Prevent the default behavior
+
+    def on_tab(self, event):
+        user_input = self.console.get("end-1c linestart", "end-1c")
+        if user_input:
+            self.console.insert(tk.END, f"\nYou entered: {user_input}")
+        self.write_to_console("")
+        return "break"  # Prevent the default behavior
+
+    def write_to_console(self, text):
+        # Function to add text to the console
+        self.console.insert(tk.END, f"{text}\n{self.prompt}")  # Add text and prompt
+        self.console.mark_set(tk.INSERT, tk.END)  # Move cursor to the end
+
+
 class CPUGUI:
     FONT = ("Consolas", 10)
 
@@ -213,9 +286,6 @@ class CPUGUI:
         self.ram = MemoryViewer(mem_frame, "RAM", mem_cbs)
 
         # ---------- registers ----------
-        # regs_frame = ttk.Frame(top_frame)
-        # regs_frame.pack(side=tk.RIGHT, padx=10, pady=5, anchor="n")
-        
         regs_frame = ttk.LabelFrame(top_frame, text="Registers", padding=5)
         regs_frame.pack(fill=tk.BOTH, expand=True, side=tk.TOP, pady=9)
 
@@ -253,18 +323,10 @@ class CPUGUI:
         console_nb = ttk.Notebook(root)
         console_nb.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.console1 = scrolledtext.ScrolledText(
-            console_nb, height=6, wrap=tk.WORD, font=self.FONT
-        )
-        self.console2 = scrolledtext.ScrolledText(
-            console_nb, height=6, wrap=tk.WORD, font=self.FONT
-        )
-        console_nb.add(self.console1, text="Console 1")
-        console_nb.add(self.console2, text="Console 2")
-        self.console1.insert(tk.END, "Console 1\n")
-        self.console2.insert(tk.END, "Console 2\n")
-        self.console1.bind("<Return>", self.on_console1_enter)
-        self.console2.bind("<Return>", self.on_console2_enter)
+        self.console1 = TerminalApp(console_nb)
+        self.console2 = TerminalApp(console_nb)
+        console_nb.add(self.console1.console, text="Console 1")
+        console_nb.add(self.console2.console, text="Console 2")
 
         # ---------- demo data ----------
         self.rom.populate_memory([i for i in range(37)])
