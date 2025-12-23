@@ -220,12 +220,12 @@ class TerminalApp:
 
     def prevent_edit_before_prompt(self, event):
         # Allow editing only after the prompt
-        # print(f"{event.keycode = }")
+        # print(f"{event.keysym = }")
         pos = self.get_horizontal_position(self.console.index(tk.INSERT))
 
-        if event.keycode in [38, 40]:  # Arrow up/down
+        if event.keysym in ["Up", "Down"]:
             return "break"  # Do nothing
-        if event.keycode in [8, 37]:  # Backspace or arrow left
+        if event.keysym in ["BackSpace", "Left"]:  # Backspace or arrow left
             if pos <= len(self.prompt):
                 return "break"
         if pos < len(self.prompt):  # Prevent other keys before the prompt
