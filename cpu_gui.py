@@ -160,7 +160,28 @@ class MemoryViewer:
 
         self.data.delete(replace_idx, next_idx)
         self.data.insert(replace_idx, ch.upper())
-        self.data.mark_set(tk.INSERT, f"{line}.{replace_col + 1}")
+        new_line = False
+        if replace_col >= 46:
+            line += 1
+            replace_col = 0
+            new_line = True
+        else:
+            if (replace_col+2) % 3 == 0:
+                self.data.delete(f"{line}.{replace_col+1}", f"{line}.{replace_col+2}")
+                self.data.insert(f"{line}.{replace_col+1}", ' ')
+                replace_col += 2
+            else:
+                replace_col += 1
+        self.data.mark_set(tk.INSERT, f"{line}.{replace_col}")
+        cur_index = self.data.index(tk.INSERT)
+        if new_line and (cur_index != f"{line}.{replace_col}"):
+            self.data.insert(tk.END, f"\n")
+        cur_index = self.data.index(tk.INSERT)
+        
+        addr_index = self.addr.index(tk.INSERT)  # self.addr.insert(tk.END, f"0x{i:04X}:\n")
+        addr_line, addr_col = map(int, addr_index.split("."))
+        if line >= addr_line:
+            self.addr.insert(tk.END, f"0x{line-1:04X}:\n")
         return "break"
 
     # --------------------------------------------------------------
