@@ -190,8 +190,9 @@ class MemoryViewer:
 #  TerminalApp – a self‑contained terminal with its own handlers
 # ----------------------------------------------------------------------
 class TerminalApp:
-    def __init__(self, parent):
+    def __init__(self, parent, on_enter_cb=None):
         self.parent = parent
+        self.on_enter_cb = on_enter_cb
 
         # Text widget to simulate terminal output/input
         self.console = scrolledtext.ScrolledText(self.parent, wrap='word', height=20, width=60)
@@ -209,7 +210,7 @@ class TerminalApp:
         
         # Bind Enter and Tab keys
         self.console.bind("<Return>", self.on_enter)
-        self.console.bind("<Tab>", self.on_tab)
+        # self.console.bind("<Tab>", self.on_tab)
 
         # Store the current position in the text widget
         self.current_position = tk.END
@@ -220,7 +221,7 @@ class TerminalApp:
 
     def prevent_edit_before_prompt(self, event):
         # Allow editing only after the prompt
-        # print(f"{event.keysym = }")
+        print(f"{event.keysym = }")
         pos = self.get_horizontal_position(self.console.index(tk.INSERT))
 
         if event.keysym in ["Up", "Down"]:
@@ -239,23 +240,39 @@ class TerminalApp:
         
     def on_enter(self, event):
         # Capture the input after the prompt
-        user_input = self.console.get("end-1c linestart", "end-1c")
+        user_input = self.console.get("end-1c linestart", "end-1c")[len(self.prompt):]
         if user_input:
-            self.console.insert(tk.END, f"\nYou entered: {user_input}")
+            if self.on_enter_cb:
+                self.on_enter_cb(user_input)
+            else:
+                self.console.insert(tk.END, f"\nYou entered: {user_input}")
         self.write_to_console("")
         return "break"  # Prevent the default behavior
 
-    def on_tab(self, event):
-        user_input = self.console.get("end-1c linestart", "end-1c")
-        if user_input:
-            self.console.insert(tk.END, f"\nYou entered: {user_input}")
-        self.write_to_console("")
-        return "break"  # Prevent the default behavior
+    # def on_tab(self, event):
+    #     user_input = self.console.get("end-1c linestart", "end-1c")
+    #     if user_input:
+    #         self.console.insert(tk.END, f"\nYou entered: {user_input}")
+    #     self.write_to_console("")
+    #     return "break"  # Prevent the default behavior
 
     def write_to_console(self, text):
         # Function to add text to the console
         self.console.insert(tk.END, f"{text}\n{self.prompt}")  # Add text and prompt
         self.console.mark_set(tk.INSERT, tk.END)  # Move cursor to the end
+    
+    def delete_last_line(self):
+        # 1. Define the start and end indices of the last line
+        # "end-1c" points to the position before the automatic newline at the very end
+        # "linestart" moves the index to the beginning of that last line
+        start_of_last_line = self.console.index("end-1c linestart")
+        
+        # The end of the range is just "end-1c" (or "end" is fine for the delete range as well)
+        # Using "end" here ensures we clear up to the very end of the buffer
+        end_of_last_line = self.console.index("end")
+        
+        # 2. Delete the current last line
+        self.console.delete(start_of_last_line, end_of_last_line)
 
 
 class CPUGUI:
@@ -323,8 +340,8 @@ class CPUGUI:
         console_nb = ttk.Notebook(root)
         console_nb.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.console1 = TerminalApp(console_nb)
-        self.console2 = TerminalApp(console_nb)
+        self.console1 = TerminalApp(console_nb, on_enter_cb=self.on_console1_enter)
+        self.console2 = TerminalApp(console_nb, on_enter_cb=self.on_console2_enter)
         console_nb.add(self.console1.console, text="Console 1")
         console_nb.add(self.console2.console, text="Console 2")
 
@@ -374,40 +391,16 @@ class CPUGUI:
     # --------------------------------------------------------------------
     def print_to_console(self, console, message):
         """Print a message to the specified console."""
-        console.insert(tk.END, message + "\n")
-        console.see(tk.END)  # Scroll to the end to show the latest message
+        consoles = [self.console1, self.console2]
+        consoles[console].write_to_console(message)
 
-    def on_console1_enter(self, event):
-        # Get all text from the console
-        text = self.console1.get("1.0", tk.END).strip()
-        # Split the text into lines and get the last line
-        lines = text.splitlines()
-        if lines:  # Check if there are any lines
-            last_line = lines[-1]  # Get the last line
-            print(f"Console 1: {last_line}")
-        # self.console1.delete("1.0", tk.END)  # Clear console
+    def on_console1_enter(self, text):
+        # print(f"Console 1: {text}")
+        self.print_to_console(1, f"Console 1: {text}")
 
-    def on_console2_enter(self, event):
-        # Get all text from the console
-        text = self.console2.get("1.0", tk.END).strip()
-        # Split the text into lines and get the last line
-        lines = text.splitlines()
-        if lines:  # Check if there are any lines
-            last_line = lines[-1]  # Get the last line
-            print(f"Console 1: {last_line}")
-        # self.console2.delete("1.0", tk.END)  # Clear console
-
-# def on_console1_enter(self, event):
-#     text = self.console1.get("1.0", tk.END).strip()
-#     if text:  # Only print if there is something to print
-#         print(f"Console 1: {text}")
-#         # self.console1.delete("1.0", tk.END)  # Clear console
-
-# def on_console2_enter(self, event):
-#     text = self.console2.get("1.0", tk.END).strip()
-#     if text:  # Only print if there is something to print
-#         print(f"Console 2: {text}")
-#         # self.console2.delete("1.0", tk.END)  # Clear console
+    def on_console2_enter(self, text):
+        # print(f"Console 2: {text}")
+        self.print_to_console(0, f"Console 2: {text}")
 
 
 if __name__ == "__main__":
