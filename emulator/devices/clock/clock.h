@@ -12,3 +12,13 @@
  */
 int add_device(clock_iface_t dev, int clock_divider);
 
+/**
+ * @brief Initialises clock
+ * @details If real_time set and xtal can run faster than real time, it will add sleep periods to each cycle to run at real time
+ *
+ * @param[int] freq Ticks per second
+ * @param[int] real_time 0: run as fast as possible; 1: do not run faster than real time
+ * @return Device id [0...] or EXIT_FAILURE in case of error
+ */
+int init_clock(int freq, int real_time);
+
