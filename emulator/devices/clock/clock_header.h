@@ -3,5 +3,5 @@
 #include <stdint.h>
 
 typedef struct {
-    int a;
+    void (*tick)(void);
 } clock_iface_t;

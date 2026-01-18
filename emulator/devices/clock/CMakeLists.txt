@@ -1,5 +1,3 @@
-set(EXECUTABLES_DIR "${CMAKE_BINARY_DIR}/executables")
-
 add_executable(clock
     clock.c
 )
