@@ -22,3 +22,10 @@ int add_device(clock_iface_t dev, int clock_divider);
  */
 int init_clock(int freq, int real_time_mode);
 
+// --- Control Functions ---
+
+void xtal_run(void);
+void xtal_pause(void);
+void xtal_step(uint32_t steps);
+void xtal_exit(void);
+void init_xtal_thread(void);

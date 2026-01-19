@@ -10,22 +10,23 @@
 #define NSEC_PER_SEC 1000000000L
 
 typedef struct {
-    clock_iface_t *iface;
+    void (*tick_func)(void);
     uint32_t tick_counter;
 } device_t;
 
 int ticks_per_second;
 int real_time_mode;
+uint64_t target_ns;
 
 device_t devices[MAX_NUM_DEVICES];
 
-int add_device(clock_iface_t dev, int clock_divider) {
+int add_device(void (*tick_func)(void), int clock_divider) {
     return -1;
 }
 
 int init_clock(int freq, int real_time_mode) {
     for(int i=0; i<MAX_NUM_DEVICES; i++) {
-        devices[i].iface = NULL;
+        devices[i].tick_func = NULL;
     }
     if (real_time_mode == 0) {
         real_time_mode = 0;
@@ -33,6 +34,8 @@ int init_clock(int freq, int real_time_mode) {
         real_time_mode = 1;
     }
     ticks_per_second = freq;
+    target_ns = NSEC_PER_SEC / ticks_per_second;
+    init_xtal_thread();
     return EXIT_SUCCESS;
 }
 
@@ -40,25 +43,21 @@ void perform_work() {   // TODO: DeleteMe
     printf("Hello world!!!\n");
 }
 
-int run_system(void) {
-    // The total time budget for one single tick in nanoseconds
-    long target_ns = NSEC_PER_SEC / ticks_per_second;
+int run_one_tick(void) {
     struct timespec start, end, delay;
     if (real_time_mode == 0) {
         perform_work();
     } else {
-        while (1) {
-            clock_gettime(CLOCK_MONOTONIC, &start);
-            perform_work();
-            clock_gettime(CLOCK_MONOTONIC, &end);
-            long elapsed_ns = (end.tv_sec - start.tv_sec) * NSEC_PER_SEC + (end.tv_nsec - start.tv_nsec);
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        perform_work();
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        long elapsed_ns = (end.tv_sec - start.tv_sec) * NSEC_PER_SEC + (end.tv_nsec - start.tv_nsec);
 
-            if (elapsed_ns < target_ns) {
-                long remaining_ns = target_ns - elapsed_ns;
-                delay.tv_sec = 0;
-                delay.tv_nsec = remaining_ns;
-                nanosleep(&delay, NULL);
-            }
+        if (elapsed_ns < target_ns) {
+            long remaining_ns = target_ns - elapsed_ns;
+            delay.tv_sec = 0;
+            delay.tv_nsec = remaining_ns;
+            nanosleep(&delay, NULL);
         }
     }
     return EXIT_SUCCESS;
@@ -71,48 +70,49 @@ static pthread_mutex_t state_mtx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t state_cond = PTHREAD_COND_INITIALIZER;
 static system_state_t current_state = STATE_PAUSED;
 
-static int step_budget = 0; // Number of steps queued
-static int is_running = 0;  // 1 if in Run mode, 0 if Paused, -1 is a signal to exit
+static int step_budget = 0;
 
 void* run_xtal(void* arg) {
     while (1) {
         pthread_mutex_lock(&state_mtx);
-        
-        // Wait while we have no budget AND we aren't in 'Run' mode
-        while (step_budget <= 0 && !is_running) {
-            if (current_state == STATE_EXIT) { 
+        switch(current_state) {
+            case STATE_EXIT:
                 pthread_mutex_unlock(&state_mtx);
                 return NULL;
-            }
-            pthread_cond_wait(&state_cond, &state_mtx);
-        }
-
-        // If we were stepping, consume one unit of the budget
-        if (!is_running && step_budget > 0) {
-            step_budget--;
+            case STATE_STEPPING:
+                if (step_budget > 0) {
+                    step_budget--;
+                    if (step_budget <= 0) {
+                        current_state = STATE_PAUSED;
+                    }
+                } else {    // Counter was decremented by API, do one more step and halt
+                    printf("Error: current_state == STATE_STEPPING and step_budget <= 0\n");
+                    current_state = STATE_PAUSED;
+                }
+                break;
+            case STATE_PAUSED:
+                pthread_cond_wait(&state_cond, &state_mtx);
+                break;
+            default:
+                printf("Error: Unknown state: %d\n", current_state);
         }
 
         pthread_mutex_unlock(&state_mtx);
 
-        // --- Execute Work ---
-        execute_timed_work(); 
+        run_one_tick(); 
     }
 }
 
-// --- Control Functions ---
-
-void xtal_run() {
+void xtal_run(void) {
     pthread_mutex_lock(&state_mtx);
-    is_running = 1;
     current_state = STATE_RUNNING;
     pthread_cond_signal(&state_cond);
     pthread_mutex_unlock(&state_mtx);
 }
 
-void xtal_pause() {
+void xtal_pause(void) {
     pthread_mutex_lock(&state_mtx);
     current_state = STATE_PAUSED;
-    is_running = 0;
     // We don't clear step_budget here, allowing pending steps to finish
     pthread_mutex_unlock(&state_mtx);
 }
@@ -125,14 +125,13 @@ void xtal_step(uint32_t steps) {
     pthread_mutex_unlock(&state_mtx);
 }
 
-void xtal_exit() {
+void xtal_exit(void) {
     pthread_mutex_lock(&state_mtx);
-    is_running = -1;
     current_state = STATE_EXIT;
     pthread_cond_signal(&state_cond);
     pthread_mutex_unlock(&state_mtx);
 }
 
-void init_xtal_thread() {
+void init_xtal_thread(void) {
     pthread_create(&worker_thread, NULL, run_xtal, NULL);
 }
