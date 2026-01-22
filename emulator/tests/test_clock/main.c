@@ -11,8 +11,8 @@
 
 #define MAX_DEV_NUM 128
 
-device_iface_t *devices[MAX_DEV_NUM];
-uint32_t num_devices;
+static device_iface_t *devices[MAX_DEV_NUM];
+static uint32_t num_devices;
 
 typedef struct {
     uint32_t size;
@@ -32,8 +32,8 @@ void save_state(char *filename) {
     uint8_t *buf = malloc(buf_size);
     memmove(buf, &num_devices, sizeof(num_devices));
     for(int i=0; i<num_devices; i++) {
-        uint32_t buf_size_inc = sizeof(device_state_t) + devices[0]->get_buf_size(&buf_size);
-        realloc(buf, buf_size+buf_size_inc);
+        uint32_t buf_size_inc = sizeof(device_state_t) + devices[0]->get_buf_size();
+        buf = realloc(buf, buf_size+buf_size_inc);
         device_state_t *dev_state = (device_state_t *)&buf[buf_size+1];
         devices[i]->save_state(dev_state->data);
         buf_size += buf_size_inc;
@@ -57,7 +57,7 @@ void restore_state(char *filename) {
     file_ptr = fopen(filename, "rb");
     if (file_ptr == NULL) {
         perror("Error opening file");
-        return 1;
+        return;
     }
 
     fseek(file_ptr, 0, SEEK_END);
@@ -68,7 +68,7 @@ void restore_state(char *filename) {
     if (buffer == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
         fclose(file_ptr);
-        return 1;
+        return;
     }
 
     size_t bytes_read = fread(buffer, 1, file_len, file_ptr);
@@ -76,7 +76,7 @@ void restore_state(char *filename) {
         fprintf(stderr, "Error reading file, read %zu bytes out of %ld\n", bytes_read, file_len);
         free(buffer);
         fclose(file_ptr);
-        return 1;
+        return;
     }
 
     printf("Read %ld bytes from file. Contents:\n", file_len);
@@ -110,8 +110,16 @@ void reset(void) {
     }
 }
 
-void mem_write(uint32_t memspace, uint32_t offset, uint32_t len, void *data);
-void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, void *data);
+void mem_write(uint32_t memspace, uint32_t offset, uint32_t len, void *data) {
+    ;
+}
+void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, void *data) {
+    ;
+}
 
-void set_register(uint32_t dev_id, uint32_t reg_id, uint32_t value);
-void get_register(uint32_t dev_id, uint32_t reg_id, uint32_t *value);
+void set_register(uint32_t dev_id, uint32_t reg_id, uint32_t value) {
+    ;
+}
+void get_register(uint32_t dev_id, uint32_t reg_id, uint32_t *value) {
+    ;
+}

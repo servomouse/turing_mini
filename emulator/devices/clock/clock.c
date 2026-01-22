@@ -14,11 +14,10 @@ typedef struct {
     uint32_t tick_counter;
 } device_t;
 
-int ticks_per_second;
-int real_time_mode;
-uint64_t target_ns;
-
-device_t devices[MAX_NUM_DEVICES];
+static int ticks_per_second;
+static int real_time_mode;
+static uint64_t target_ns;
+static device_t devices[MAX_NUM_DEVICES];
 
 int clock_add_device(void (*tick_func)(void), int clock_divider) {
     return -1;

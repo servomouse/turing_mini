@@ -10,7 +10,7 @@ include(CTest)
 find_package(Python3 REQUIRED)
 
 set(EXECUTABLES_DIR "${CMAKE_BINARY_DIR}/executables")
-set(DEVICES_DIR "${PROJECT_SOURCE_DIR}/devices")
+set(DEVICES_DIR "${CMAKE_SOURCE_DIR}/devices")
 
 add_subdirectory(devices/clock)
 add_subdirectory(devices/dummy)
@@ -22,6 +22,6 @@ add_subdirectory(tests/test_clock)
 add_custom_target(
     build-all
     DEPENDS
-        clock
-        test-clock
+        clock_lib
+        test_clock_dll
 )

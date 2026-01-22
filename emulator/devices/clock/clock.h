@@ -1,8 +1,6 @@
 #pragma once
 
-#include "clock_header.h"
-
-
+#include <stdint.h>
 /**
  * @brief Connect device to xtal
  *
