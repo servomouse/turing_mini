@@ -110,10 +110,10 @@ void reset(void) {
     }
 }
 
-void mem_write(uint32_t memspace, uint32_t offset, uint32_t len, void *data) {
+void mem_write(uint32_t memspace, uint32_t offset, uint32_t len, uint8_t *data) {
     ;
 }
-void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, void *data) {
+void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, uint8_t *data) {
     ;
 }
 
