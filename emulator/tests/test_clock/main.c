@@ -6,6 +6,7 @@
 #include "API/device_api.h"
 
 // Devices:
+#include "clock/clock.h"
 #include "dummy/dummy.h"
 
 #define MAX_DEV_NUM 128
@@ -19,8 +20,10 @@ typedef struct {
 } device_state_t;
 
 void init(void) {
+    init_clock(1, 1);
     devices[0] = calloc(1, sizeof(device_iface_t));
     dummy_device_get_device_iface(devices[0]);
+    clock_add_device(devices[0]->tick, 1);
     num_devices++;
 }
 
@@ -89,10 +92,23 @@ void restore_state(char *filename) {
     fclose(file_ptr);
 }
 
-void run(void);
-void stop(void);
-void step(uint32_t num_steps);
-void reset(void);
+void run(void) {
+    xtal_run();
+}
+
+void stop(void) {
+    xtal_pause();
+}
+
+void step(uint32_t num_steps) {
+    xtal_step(num_steps);
+}
+
+void reset(void) {
+    for(int i=0; i<num_devices; i++) {
+        devices[i]->reset();
+    }
+}
 
 void mem_write(uint32_t memspace, uint32_t offset, uint32_t len, void *data);
 void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, void *data);

@@ -20,7 +20,7 @@ uint64_t target_ns;
 
 device_t devices[MAX_NUM_DEVICES];
 
-int add_device(void (*tick_func)(void), int clock_divider) {
+int clock_add_device(void (*tick_func)(void), int clock_divider) {
     return -1;
 }
 

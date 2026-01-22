@@ -15,12 +15,15 @@ void tick(void) {
     printf("Hello world!!!\n");
 }
 
-uint8_t *save_state(uint32_t *buf_size) {
-    uint8_t *buf = (uint8_t*)calloc(TEST_BUF_SIZE, sizeof(uint8_t));
+uint32_t get_buf_size(void) {
+    return TEST_BUF_SIZE;
+}
+
+void save_state(uint8_t *buf) {
+    // uint8_t *buf = (uint8_t*)calloc(TEST_BUF_SIZE, sizeof(uint8_t));
     memmove(buf, test_buf, sizeof(test_buf));
     buf[12] = 23;
     buf[28] = 98;
-    *buf_size = TEST_BUF_SIZE;
     return buf;
 }
 
@@ -39,14 +42,17 @@ void get_register(uint32_t reg_id, uint32_t *value) {
     *value = test_buf[reg_id];
 }
 
-device_iface_t get_device_iface(void) {
-    device_iface_t iface = {
-        .init = init,
-        .tick = tick,
-        .save_state = save_state,
-        .restore_state =restore_state,
-        .get_register = get_register,
-        .set_register = set_register
-    };
-    return iface;
+void reset(void) {
+    return;
+}
+
+void dummy_device_get_device_iface(device_iface_t *iface) {
+    iface->init = init;
+    iface->tick = tick;
+    iface->get_buf_size = get_buf_size;
+    iface->save_state = save_state;
+    iface->restore_state =restore_state;
+    iface->get_register = get_register;
+    iface->set_register = set_register;
+    iface->reset = reset;
 }
