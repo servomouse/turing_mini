@@ -9,9 +9,19 @@ target_include_directories(test_clock_dll PUBLIC
 )
 
 target_link_libraries(test_clock_dll
-    dummy_device_lib
-    clock_lib
+    # Force static linking
+    $<TARGET_FILE:dummy_device_lib> 
+    $<TARGET_FILE:clock_lib>
 )
+
+if(WIN32)
+    # Target the specific DLL
+    target_link_options(test_clock_dll PRIVATE
+        "-static"
+        "-static-libgcc"
+        "-static-libstdc++"
+    )
+endif()
 
 add_custom_command(TARGET test_clock_dll POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${EXECUTABLES_DIR}
