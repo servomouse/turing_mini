@@ -85,7 +85,7 @@ void* run_xtal(void* arg) {
                         current_state = STATE_PAUSED;
                     }
                 } else {    // Counter was decremented by API, do one more step and halt
-                    printf("Error: current_state == STATE_STEPPING and step_budget <= 0\n");
+                    RAISE("Error: current_state == STATE_STEPPING and step_budget <= 0\n");
                     current_state = STATE_PAUSED;
                 }
                 break;
@@ -93,7 +93,7 @@ void* run_xtal(void* arg) {
                 pthread_cond_wait(&state_cond, &state_mtx);
                 break;
             default:
-                printf("Error: Unknown state: %d\n", current_state);
+                RAISE("Error: Unknown state: %d\n", current_state);
         }
 
         pthread_mutex_unlock(&state_mtx);
