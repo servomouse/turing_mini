@@ -88,6 +88,7 @@ void* run_xtal(void* arg) {
                     RAISE("Error: current_state == STATE_STEPPING and step_budget <= 0\n");
                     current_state = STATE_PAUSED;
                 }
+            case STATE_RUNNING:
                 break;
             case STATE_PAUSED:
                 pthread_cond_wait(&state_cond, &state_mtx);

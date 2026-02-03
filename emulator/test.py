@@ -62,7 +62,7 @@ class DeviceLibraryWrapper:
     def stop(self):
         self.lib.stop()
 
-    def step(self, num_steps: int):
+    def step(self, num_steps: int = 1):
         self.lib.step(num_steps)
 
     def reset(self):
@@ -93,7 +93,8 @@ class DeviceLibraryWrapper:
 device = DeviceLibraryWrapper("bin/executables/libtest_clock_dll.dll")
 
 device.init()
-device.run()
+# device.run()
+device.step()
 
 my_data = b'\xAA\xBB\xCC\xDD'
 device.mem_write(0x1, 0x1000, my_data)
