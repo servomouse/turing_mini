@@ -126,9 +126,15 @@ void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, uint8_t *data) {
 }
 
 void set_register(uint32_t dev_id, uint32_t reg_id, uint32_t value) {
-    printf("Device %d: Writing to register 0x%X: 0x%X\n", dev_id, value, reg_id);
+    printf("Device %d: Writing to register 0x%X: 0x%X\n", dev_id, reg_id, value);
+    if (devices[dev_id]) {
+        devices[dev_id]->set_register(reg_id, value);
+    }
 }
+
 void get_register(uint32_t dev_id, uint32_t reg_id, uint32_t *value) {
-    uint32_t val = 0;
-    printf("Device %d: Reading from register 0x%X: 0x%X\n", dev_id, reg_id, val);
+    if (devices[dev_id]) {
+        devices[dev_id]->get_register(reg_id, value);
+    }
+    printf("Device %d: Reading from register 0x%X: 0x%X\n", dev_id, reg_id, *value);
 }
