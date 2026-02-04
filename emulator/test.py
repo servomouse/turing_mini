@@ -72,11 +72,13 @@ class DeviceLibraryWrapper:
         # Convert python bytes to a ctypes array
         data_len = len(data)
         c_data = (ctypes.c_uint8 * data_len)(*data)
+        print(f"mem_write: {memspace = }, {offset = }, {data_len = }, {c_data = }")
         self.lib.mem_write(memspace, offset, data_len, c_data)
 
     def mem_read(self, memspace: int, offset: int, length: int) -> bytes:
         # Create a buffer to receive data
         buffer = (ctypes.c_uint8 * length)()
+        print(f"mem_write: {memspace = }, {offset = }, {length = }, {buffer = }")
         self.lib.mem_read(memspace, offset, length, buffer)
         return bytes(buffer)
 
@@ -97,8 +99,9 @@ device.init()
 device.step()
 
 my_data = b'\xAA\xBB\xCC\xDD'
-device.mem_write(0x1, 0x1000, my_data)
-result = device.mem_read(0x1, 0x1000, 4)
+device.mem_write(0x1, 0x10, my_data)
+result = device.mem_read(0x1, 0x10, 4)
+print(f"Memory read result: {result}")
 
 reg_val = device.get_register(dev_id=0, reg_id=5)
 print(f"Register Value: {reg_val}")

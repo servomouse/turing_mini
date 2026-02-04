@@ -19,6 +19,8 @@ typedef struct {
     uint8_t data[0];
 } device_state_t;
 
+uint8_t memory[128];
+
 void init(void) {
     init_clock(1, 1);
     devices[0] = calloc(1, sizeof(device_iface_t));
@@ -111,15 +113,22 @@ void reset(void) {
 }
 
 void mem_write(uint32_t memspace, uint32_t offset, uint32_t len, uint8_t *data) {
-    ;
+    printf("Memspace %d: Writing %d bytes to offset 0x%X, addr: 0x%X\n", memspace, len, offset, data);
+    for(int i=0; i<len; i++) {
+        memory[offset+i] = data[i];
+    }
 }
 void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, uint8_t *data) {
-    ;
+    printf("Memspace %d: Reading %d bytes from offset 0x%X, addr: 0x%X\n", memspace, len, offset, data);
+    for(int i=0; i<len; i++) {
+        data[i] = memory[offset+i];
+    }
 }
 
 void set_register(uint32_t dev_id, uint32_t reg_id, uint32_t value) {
-    ;
+    printf("Device %d: Writing to register 0x%X: 0x%X\n", dev_id, value, reg_id);
 }
 void get_register(uint32_t dev_id, uint32_t reg_id, uint32_t *value) {
-    ;
+    uint32_t val = 0;
+    printf("Device %d: Reading from register 0x%X: 0x%X\n", dev_id, reg_id, val);
 }
