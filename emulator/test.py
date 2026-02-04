@@ -92,7 +92,6 @@ class DeviceLibraryWrapper:
         return value.value
 
 
-
 device = DeviceLibraryWrapper("bin/executables/libtest_clock_dll.dll")
 
 device.init()
@@ -111,5 +110,5 @@ reg_val = device.get_register(dev_id=0, reg_id=5)
 print(f"Register Value: {reg_val}")
 
 device.run()
-time.sleep(10)
+time.sleep(5)
 device.stop()

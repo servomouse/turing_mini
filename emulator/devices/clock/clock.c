@@ -90,31 +90,43 @@ typedef enum { STATE_PAUSED, STATE_RUNNING, STATE_STEPPING, STATE_EXIT } system_
 static pthread_t worker_thread;
 static pthread_mutex_t state_mtx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t state_cond = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t step_done_cond = PTHREAD_COND_INITIALIZER;
 static system_state_t current_state = STATE_PAUSED;
 
 static int step_budget = 0;
 
 void* run_xtal(void* arg) {
+    printf("run_xtal: Init\n");
     while (1) {
+        int just_finished_stepping = 0;
+        int keep_running = 0;
         pthread_mutex_lock(&state_mtx);
         switch(current_state) {
             case STATE_EXIT:
                 pthread_mutex_unlock(&state_mtx);
                 return NULL;
             case STATE_STEPPING:
+                printf("run_xtal: STATE_STEPPING\n");
                 if (step_budget > 0) {
                     step_budget--;
-                    if (step_budget <= 0) {
+                    if (step_budget <= 0) { // Will halt on the next iteration
                         current_state = STATE_PAUSED;
+                        just_finished_stepping = 1;
                     }
+                    keep_running = 1;
                 } else {    // Counter was decremented by API, do one more step and halt
                     RAISE("Error: current_state == STATE_STEPPING and step_budget <= 0\n");
                     current_state = STATE_PAUSED;
                 }
+                break;
             case STATE_RUNNING:
+                printf("run_xtal: STATE_RUNNING\n");
+                keep_running = 1;
                 break;
             case STATE_PAUSED:
+                printf("run_xtal: STATE_PAUSED\n");
                 pthread_cond_wait(&state_cond, &state_mtx);
+                printf("run_xtal: signal received\n");
                 break;
             default:
                 RAISE("Error: Unknown state: %d\n", current_state);
@@ -122,7 +134,13 @@ void* run_xtal(void* arg) {
 
         pthread_mutex_unlock(&state_mtx);
 
-        run_one_tick(); 
+        if (keep_running) {
+            run_one_tick();
+        }
+
+        if (just_finished_stepping) {
+            pthread_cond_broadcast(&step_done_cond);
+        }
     }
 }
 
@@ -141,10 +159,14 @@ void xtal_pause(void) {
 }
 
 void xtal_step(uint32_t steps) {
+    printf("xtal_step: running %d steps\n", steps);
     pthread_mutex_lock(&state_mtx);
     step_budget += steps;
     current_state = STATE_STEPPING;
     pthread_cond_signal(&state_cond);
+    while (step_budget > 0) {
+        pthread_cond_wait(&step_done_cond, &state_mtx);
+    }
     pthread_mutex_unlock(&state_mtx);
 }
 
