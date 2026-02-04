@@ -25,7 +25,8 @@ void init(void) {
     init_clock(1, 1);
     devices[0] = calloc(1, sizeof(device_iface_t));
     dummy_device_get_device_iface(devices[0]);
-    clock_add_device(devices[0]->tick, 1);
+    int device_id = clock_add_device(devices[0]->tick, 1);
+    printf("Dummy device id: %d\n", device_id);
     num_devices++;
 }
 
@@ -118,6 +119,7 @@ void mem_write(uint32_t memspace, uint32_t offset, uint32_t len, uint8_t *data) 
         memory[offset+i] = data[i];
     }
 }
+
 void mem_read(uint32_t memspace, uint32_t offset, uint32_t len, uint8_t *data) {
     printf("Memspace %d: Reading %d bytes from offset 0x%X, addr: 0x%X\n", memspace, len, offset, data);
     for(int i=0; i<len; i++) {

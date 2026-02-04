@@ -11,7 +11,7 @@
  * @param[int] clock_divider The device will be called each clock_divider clock of xtal
  * @return Device id [0...] or EXIT_FAILURE in case of error
  */
-int clock_add_device(void (*tick)(void), int clock_divider);
+int clock_add_device(void (*tick)(void), uint32_t clock_divider);
 
 /**
  * @brief Initialises clock

@@ -11,15 +11,25 @@
 
 typedef struct {
     void (*tick_func)(void);
-    uint32_t tick_counter;
+    uint32_t tick_counter;  // Used for the divider functionality
+    uint32_t clock_divider;
 } device_t;
 
+static uint64_t tick_counter;
 static int ticks_per_second;
-static int real_time_mode;
+static int rtm;
 static uint64_t target_ns;
 static device_t devices[MAX_NUM_DEVICES];
 
-int clock_add_device(void (*tick_func)(void), int clock_divider) {
+int clock_add_device(void (*tick_func)(void), uint32_t clock_divider) {
+    for(int i=0; i<MAX_NUM_DEVICES; i++) {
+        if (devices[i].tick_func == NULL) {
+            devices[i].tick_func = tick_func;
+            devices[i].tick_counter = 0;
+            devices[i].clock_divider = clock_divider;
+            return i;
+        }
+    }
     return -1;
 }
 
@@ -27,10 +37,11 @@ int init_clock(int freq, int real_time_mode) {
     for(int i=0; i<MAX_NUM_DEVICES; i++) {
         devices[i].tick_func = NULL;
     }
+    printf("Init clock, freq: %d, real_time_mode: %s\n", freq, real_time_mode? "True": "False");
     if (real_time_mode == 0) {
-        real_time_mode = 0;
+        rtm = 0;
     } else {
-        real_time_mode = 1;
+        rtm = 1;
     }
     ticks_per_second = freq;
     target_ns = NSEC_PER_SEC / ticks_per_second;
@@ -38,17 +49,28 @@ int init_clock(int freq, int real_time_mode) {
     return EXIT_SUCCESS;
 }
 
-void perform_work() {   // TODO: DeleteMe
-    printf("Hello world!!!\n");
+void tick_system() {
+    for(int i=0; i<MAX_NUM_DEVICES; i++) {
+        if (devices[i].tick_func != NULL) {
+            devices[i].tick_counter++;
+            if(devices[i].tick_counter == devices[i].clock_divider) {
+                devices[i].tick_func();
+                devices[i].tick_counter = 0;
+            }
+        }
+    }
 }
 
 int run_one_tick(void) {
     struct timespec start, end, delay;
-    if (real_time_mode == 0) {
-        perform_work();
+    if (tick_counter > 128) {
+        exit(EXIT_SUCCESS);
+    }
+    if (rtm == 0) {
+        tick_system();
     } else {
         clock_gettime(CLOCK_MONOTONIC, &start);
-        perform_work();
+        tick_system();
         clock_gettime(CLOCK_MONOTONIC, &end);
         long elapsed_ns = (end.tv_sec - start.tv_sec) * NSEC_PER_SEC + (end.tv_nsec - start.tv_nsec);
 
@@ -59,6 +81,7 @@ int run_one_tick(void) {
             nanosleep(&delay, NULL);
         }
     }
+    tick_counter++;
     return EXIT_SUCCESS;
 }
 

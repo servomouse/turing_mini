@@ -1,5 +1,6 @@
 import ctypes
 import os
+import time
 
 class DeviceLibraryWrapper:
     def __init__(self, dll_path):
@@ -95,7 +96,9 @@ class DeviceLibraryWrapper:
 device = DeviceLibraryWrapper("bin/executables/libtest_clock_dll.dll")
 
 device.init()
-# device.run()
+device.step()
+device.step()
+device.step()
 device.step()
 
 my_data = b'\xAA\xBB\xCC\xDD'
@@ -106,3 +109,7 @@ print(f"Memory read result: {result}")
 device.set_register(dev_id=0, reg_id=5, value=17)
 reg_val = device.get_register(dev_id=0, reg_id=5)
 print(f"Register Value: {reg_val}")
+
+device.run()
+time.sleep(10)
+device.stop()

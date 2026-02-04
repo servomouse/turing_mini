@@ -13,7 +13,7 @@ static void init(void) {
 
 static void tick(void) {
     tick_counter++;
-    printf("Hello world!!!\n");
+    printf("Dummy device tick counter: %d\n", tick_counter);
 }
 
 static uint32_t get_buf_size(void) {
