@@ -1,1 +1,2 @@
 emulator/bin/**
+emulator/__pycache__/**
