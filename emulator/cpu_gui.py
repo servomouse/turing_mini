@@ -309,7 +309,7 @@ class TerminalApp:
 class CPUGUI:
     FONT = ("Consolas", 10)
 
-    def __init__(self, root):
+    def __init__(self, root, memspaces, registers):
         self.root = root
         self.root.title("CPU Emulator")
         self.cpu_state = "Stop"
@@ -322,32 +322,28 @@ class CPUGUI:
         mem_frame = ttk.Frame(top_frame)
         mem_frame.pack(side=tk.LEFT, fill=tk.X, padx=10, pady=5)
 
-        # callbacks dictionary passed to each viewer
-        mem_cbs = {
-            "read": self.read_memory,
-            "write": self.write_memory,
-            "load": self.load_memory,
-            "save": self.save_memory,
-        }
-
-        self.rom = MemoryViewer(mem_frame, "ROM", mem_cbs)
-        self.ram = MemoryViewer(mem_frame, "RAM", mem_cbs)
+        self.memspaces = {}
+        for m, cbs in memspaces.items():
+            self.memspaces[m] = MemoryViewer(mem_frame, m, cbs)
 
         # ---------- registers ----------
         regs_frame = ttk.LabelFrame(top_frame, text="Registers", padding=5)
         regs_frame.pack(fill=tk.BOTH, expand=True, side=tk.TOP, pady=9)
 
         self.registers = {}
-        for i in range(9):
-            lbl = ttk.Label(regs_frame, text=f"R{i}:", width=3, anchor="e")
+        for i, r in enumerate(registers):
+            lbl = ttk.Label(regs_frame, text=f"{r}:", width=3, anchor="e")
             lbl.grid(row=i, column=0, sticky="e", padx=2, pady=2)
             entry = ttk.Entry(regs_frame, width=12, font=self.FONT)
             entry.grid(row=i, column=1, sticky="w", padx=2, pady=2)
-            self.registers[f"R{i}"] = entry
+            self.registers[f"{r}"] = entry
+
+        btn_frame = ttk.LabelFrame(top_frame, text="Control", padding=5)
+        btn_frame.pack(fill=tk.BOTH, expand=True, side=tk.TOP, pady=9)
 
         # control buttons (Run / Step / Reset)
-        btn_box = ttk.Frame(regs_frame)
-        btn_box.grid(row=9, column=0, columnspan=2, pady=8)
+        btn_box = ttk.Frame(btn_frame)
+        btn_box.grid(row=len(registers), column=0, columnspan=2, pady=8, padx=8)
 
         self.run_btn = ttk.Button(btn_box, text="Run", width=10, command=self.run_btn_callback)
         self.run_btn.pack(side=tk.LEFT, padx=4)
@@ -358,14 +354,14 @@ class CPUGUI:
         self.rst_btn = ttk.Button(btn_box, text="Reset", width=10, command=self.rst_btn_callback)
         self.rst_btn.pack(side=tk.LEFT, padx=4)
 
-        btn_box = ttk.Frame(regs_frame)
+        btn_box = ttk.Frame(btn_frame)
         btn_box.grid(row=9, column=0, columnspan=2, pady=8)
 
-        cpu_status_text_label = ttk.Label(regs_frame, text="CPU state:", font =("Courier", 14))
-        cpu_status_text_label.grid(row=10, column=0, columnspan=2, pady=4)
+        cpu_status_text_label = ttk.Label(btn_frame, text="CPU state:", font =("Courier", 14))
+        cpu_status_text_label.grid(row=10, column=0, columnspan=1, pady=4)
 
-        self.cpu_status_label = ttk.Label(regs_frame, text="HALT", font =("Courier", 14), background="yellow")
-        self.cpu_status_label.grid(row=11, column=0, columnspan=2, pady=4)
+        self.cpu_status_label = ttk.Label(btn_frame, text="HALT", font =("Courier", 14), background="yellow")
+        self.cpu_status_label.grid(row=10, column=1, columnspan=1, pady=4)
 
         # ---------- consoles (tabbed) ----------
         console_nb = ttk.Notebook(root)
@@ -375,25 +371,6 @@ class CPUGUI:
         self.console2 = TerminalApp(console_nb, on_enter_cb=self.on_console2_enter)
         console_nb.add(self.console1.console, text="Console 1")
         console_nb.add(self.console2.console, text="Console 2")
-
-        # ---------- demo data ----------
-        self.rom.populate_memory([i%256 for i in range(1024)])
-        self.ram.populate_memory([i%256 for i in range(1024)])
-
-    # ------------------------------------------------------------------
-    #  Dummy callbacks for the memory viewer buttons
-    # ------------------------------------------------------------------
-    def read_memory(self, label):
-        print(f"[{label}] Read button pressed")
-
-    def write_memory(self, label):
-        print(f"[{label}] Write button pressed")
-
-    def load_memory(self, label):
-        print(f"[{label}] Load button pressed")
-
-    def save_memory(self, label):
-        print(f"[{label}] Save button pressed")
 
     # ------------------------------------------------------------------
     #  CPU control callbacks
@@ -434,7 +411,38 @@ class CPUGUI:
         self.print_to_console(0, f"Console 2: {text}")
 
 
+
+
 if __name__ == "__main__":
+
+    def read_memory(label):
+        print(f"[{label}] Read button pressed")
+
+    def write_memory(label):
+        print(f"[{label}] Write button pressed")
+
+    def load_memory(label):
+        print(f"[{label}] Load button pressed")
+
+    def save_memory(label):
+        print(f"[{label}] Save button pressed")
+
+
     root = tk.Tk()
-    CPUGUI(root)
+    memspaces = {
+        "ROM": {
+            "read": read_memory,
+            "write": write_memory,
+            "load": load_memory,
+            "save": save_memory,
+        },
+        "RAM": {
+            "read": read_memory,
+            "write": write_memory,
+            "load": load_memory,
+            "save": save_memory,
+        }
+    }
+    registers = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"]
+    CPUGUI(root, memspaces, registers)
     root.mainloop()

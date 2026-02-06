@@ -6,6 +6,8 @@
 #include "clock.h"
 #include <pthread.h>
 
+#include "lib/utils.h"
+
 #define MAX_NUM_DEVICES 256
 #define NSEC_PER_SEC 1000000000L
 

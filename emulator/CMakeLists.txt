@@ -12,6 +12,8 @@ find_package(Python3 REQUIRED)
 set(EXECUTABLES_DIR "${CMAKE_BINARY_DIR}/executables")
 set(DEVICES_DIR "${CMAKE_SOURCE_DIR}/devices")
 
+add_subdirectory(devices/address_decoder)
+add_subdirectory(devices/memory)
 add_subdirectory(devices/clock)
 add_subdirectory(devices/dummy)
 add_subdirectory(tests/test_clock)
